@@ -173,7 +173,7 @@ def processFile(filename):
 	print(filename+" \nCommand generated and saved! Size: "+str(len(command)))
 	
 	return 1
-"""
+
 count = (input("Do you wish to process every image in images/?\n(!!LARGE FILES MAY TAKE A WHILE!!)\n[Y/n]:")=="n")
 
 files = []
@@ -188,7 +188,7 @@ if __name__ == '__main__':
 	output = p.map(processFile, files)
 	p.close()
 	p.join()
-"""
+
 import glob
 
 directory = glob.glob('functions/')
