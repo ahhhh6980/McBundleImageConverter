@@ -55,7 +55,7 @@ def generateCommandItems(inData):
 def processFile(filename):
 
 	ex = detectExtension(filename)
-	print("\nPROCESSING ",filename[:-len(ex)]," ...")
+	print("\nStarted processing ", filename[:-len(ex)]," ...")
 	
 	
 	workImage = Image.open(("images/"+filename)) 
@@ -64,7 +64,7 @@ def processFile(filename):
 
 
 	if(dithering):
-		print(filename+" Started dithering")
+		print(+"Started dithering for "+filename)
 		for i in range(width):
 			for j in range(height):
 				oldPixel = getPixel( [i,j], workImage )
@@ -85,7 +85,7 @@ def processFile(filename):
 				if( i<width-1 and j<height-1 ): 
 					setPixel([i+1,j+1], workImage, 
 						 	 ( np.array(getPixel([i+1,j+1], workImage)) + (quant_error * (1 / 16)) ).astype(int))
-		print(filename+" Finished dithering")
+		print("Finished dithering for "+filename)
 	
 	
 	inData = []
@@ -96,7 +96,7 @@ def processFile(filename):
 			inData.append( [n, [seg*(n+1),width], workImage, height])
 	
 	
-	print(filename+" Started assembling function")
+	print("Started assembling function for "+ filename)
 	if __name__ == '__main__':
 		pool = nPool(3)
 		output = pool.map(generateCommandItems, inData)
@@ -110,9 +110,8 @@ def processFile(filename):
 	if(isGif):
 		command = '{"function":"set_nbt","tag":"{\\"Items\\":['
 		items = ""
-		for e in output:
-			print(filename, e[0])
-			items += e[1]
+		
+		for e in output: items += e[1]
 
 		command+= items+'],bundle:\\" '+filename+' \\"}"}'
 
@@ -131,7 +130,7 @@ def processFile(filename):
 		file1.close()
 		
 		
-	print(filename+" \nCommand generated and saved! Size: "+str(len(command)))
+	print(filename+" command has been generated and saved! Size: "+str(len(command)))
 	return 1
 
 
@@ -142,20 +141,26 @@ dithering = ((input("\nDo you want dithering?\n(This is best for images with a w
 
 files = []
 if(isGif): 
-
 	directory = 'item_modifiers'
 	for f in os.listdir(directory):
 		os.remove(os.path.join(directory, f))
 		
 	everything = False
-	im = Image.open("gifs/"+input("\nType the file name of the image (including extension) that you wish to process\n[imageName]: "))
+	gName = input("\nType the file name of the image (including extension) that you wish to process\n[imageName]: ")
+	im = Image.open("gifs/"+gName)
+	
+	ext = detectExtension(gName)
+	gName = gName[:-1*len(ext)]
+	
+	print("\nStarted splitting GIF...\n")
 	
 	for frame in range(0,im.n_frames):
 		im.seek(frame)
-		name = "test_gif_frame_"+str(frame)+".png"
+		name = gName+"_"+str(frame)+".png"
 		im.save("images/"+name)
 		files.append(name)
-
+		
+	print("\nGIF is split...\n")
 
 if(everything==True and isGif==False):
 
@@ -173,9 +178,8 @@ if(everything==False and isGif==False):
 
 
 if __name__ == '__main__':
-	print()
-	print(files)
-	print()
+	print("\nFiles that will be processed:\n",files)
+	print("\n\nStarting to MultiProcess images...\n")
 	p = nPool(4)
 	output = p.map(processFile, files)
 	p.close()
@@ -195,6 +199,7 @@ def getLastNumber(string):
 
 if(isGif):
 	
+	print("\nClearing images if gif frames, and clearing out gif frames from functions")
 	
 	directory = 'images'
 	for f in os.listdir(directory):
@@ -208,6 +213,9 @@ if(isGif):
 		os.remove(os.path.join(directory, f))
 
 
+	print("\ngenerating gif commands...")
+	
+	
 	tag = "start"
 	start = 'scoreboard objectives add '+tag+' dummy\ngive @a minecraft:bundle{bundles:"'+tag+'"}'
 	run = """scoreboard players add @a[scores={"""+tag+"""=1..}] """+tag+""" 1\n
@@ -216,9 +224,6 @@ if(isGif):
 	"""
 
 
-	print("\ngenerating gif commands...")
-	
-	
 	fileList = []
 	for modifier in os.listdir("item_modifiers"):
 		fileList.append([getLastNumber(modifier),modifier[:-5]])
@@ -227,7 +232,6 @@ if(isGif):
 	print(fileList)
 
 	for e in fileList:
-		print(e)
 		run+="""item entity @a[scores={"""+tag+"""="""+str(int(e[0])+1)+"""},nbt={Inventory:[{id:"minecraft:bundle",tag:{bundles:\""""+tag+"""\"},Count: 1b,Slot: 0b}]}] hotbar.0 modify bundles:"""+e[1]+"""\n"""
 	run+="""scoreboard players set @a[scores={"""+tag+"""="""+str(int(fileList[-1][0])+2)+"""..}] """+tag+""" 1"""
 
