@@ -6,7 +6,11 @@ Why? Well you can make this work with ANY resource pack!
 So you can get a resource pack together for full colors and get this running. :P
 
 How do you set this up?
-Well, if you choose to only process images, you'll be able to run functions that just give you the bundles.
+
+Just go into datapacks/
+drag the folder you created when running the script into your worlds datapack folder!
+
+if you chose to only process images, you'll be able to run functions that just give you the bundles.
 
 If you chose to process a gif, you will have to run /function bundles:start
 This will give you a bundle, keep it in the first slot of your hotbar!

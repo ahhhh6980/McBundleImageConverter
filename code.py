@@ -4,6 +4,7 @@ import multiprocessing.pool
 from PIL import Image
 from sys import exit
 import numpy as np
+import shutil 
 import glob
 import os
 
@@ -24,14 +25,19 @@ for palette in os.listdir("palettes"):
 		currentImage = Image.open("palettes/"+palette+"/"+image) 
 		print("palettes/"+palette+"/"+image)
 		
-		colors.append([getAverageColor(currentImage),image[:-4]])
+		colors.append([getAverageColor(currentImage, image),image[:-4]])
 		print(colors[-1],"\n")
+		
+paletteFile = open("paletteFile.txt","w") 
+paletteFile.write("")
+paletteFile.close()
 
-
+paletteFile = open("paletteFile.txt","a") 
 print("COLORS: ")
 for e in colors:
+	paletteFile.write(str(e)+"\n")
 	print(e)
-
+paletteFile.close()
 
 print("\nColors: ", len(colors),"\n")
 
@@ -47,6 +53,7 @@ def generateCommandItems(inData):
 	for i in range(*segment):
 		for j in range(height):
 			currentColor = getColor(getPixel([i,j], image),colors)
+			print(currentColor)
 			command+='{Count:1b,id:\\"'+currentColor[1]+'\\"},'
 	
 	return [pieceNum,command]
@@ -98,7 +105,7 @@ def processFile(filename):
 	
 	print("Started assembling function for "+ filename)
 	if __name__ == '__main__':
-		pool = nPool(3)
+		pool = nPool(processThreads)
 		output = pool.map(generateCommandItems, inData)
 		pool.close()
 		pool.join()
@@ -106,24 +113,20 @@ def processFile(filename):
 		
 	output.sort()
 	
-	
 	if(isGif):
 		command = '{"function":"set_nbt","tag":"{\\"Items\\":['
 		items = ""
-		
 		for e in output: items += e[1]
 
-		command+= items+'],bundle:\\" '+filename+' \\"}"}'
+		command+= items+'],gbundle:\\"start\\"}"}'
 
-		file1 = open("item_modifiers/"+filename[:-len(ex)]+".json","w") 
+		file1 = open("item_modifiers/"+filename[:-len(ex)].lower()+".json","w") 
 		file1.write(command)
 		file1.close()
 		
 	else:
 		items = ""
-		for e in output:
-			print(filename, e[0])
-			items += e[1]
+		for e in output: items += e[1]
 		command = "give @p bundle{Items:["+items[:-1]+"]}"
 		file1 = open("functions/giveBundle_"+filename[:-len(ex)]+".mcfunction","w") 
 		file1.write(command)
@@ -133,10 +136,17 @@ def processFile(filename):
 	print(filename+" command has been generated and saved! Size: "+str(len(command)))
 	return 1
 
+notOkayWithThreads = True
+while(notOkayWithThreads):
+	processThreads = int(input("\nHow many processes would you like to use for processing the commands?\n(each image will open this many processes)\n[default: 3 ]:") or 3)
+	imageThreads = int(input("\nHow many images would you like to process at the same time?\n(will open this many processes times the amount per image!!!)\n[default: 2]:") or 2)
+	notOkayWithThreads = (input("\n!!!This program is set to use "+str(processThreads*imageThreads)+" threads of your CPU, are you sure?!!!\n[y/N]:").lower() or "n")=="n"
 
-everything = ((input("Do you wish to process every image in images/?\n(!!LARGE FILES MAY TAKE A WHILE!!)\n[Y/n]:") or "y").lower()=="y")
-isGif = ((input("Do you wish to process a gif?\n(!!LARGE FILES MAY TAKE A WHILE!!)\n[y/N]:") or "n").lower()=="y")
+
+datapackName = input("\nPlease enter a name for the data pack\n[untitled_pack]:") or "untitled_pack"
+everything = ((input("\nDo you wish to process every image in images/?\n(!!LARGE FILES MAY TAKE A WHILE!!)\n[Y/n]:") or "y").lower()=="y")
 dithering = ((input("\nDo you want dithering?\n(This is best for images with a wide range of colors)\n[y/N]:") or "n").lower()=="y")
+isGif = ((input("\nDo you wish to process a gif?\n(!!LARGE FILES MAY TAKE A WHILE!!)\n[y/N]:") or "n").lower()=="y")
 
 
 files = []
@@ -161,7 +171,13 @@ if(isGif):
 		files.append(name)
 		
 	print("\nGIF is split...\n")
-
+	
+else:
+	directory = 'functions'
+	for f in os.listdir(directory):
+		os.remove(os.path.join(directory, f))
+		
+		
 if(everything==True and isGif==False):
 
 	files = []
@@ -180,7 +196,7 @@ if(everything==False and isGif==False):
 if __name__ == '__main__':
 	print("\nFiles that will be processed:\n",files)
 	print("\n\nStarting to MultiProcess images...\n")
-	p = nPool(4)
+	p = nPool(imageThreads)
 	output = p.map(processFile, files)
 	p.close()
 	p.join()
@@ -201,6 +217,7 @@ if(isGif):
 	
 	print("\nClearing images if gif frames, and clearing out gif frames from functions")
 	
+	
 	directory = 'images'
 	for f in os.listdir(directory):
 		if f in files:
@@ -215,13 +232,12 @@ if(isGif):
 
 	print("\ngenerating gif commands...")
 	
-	
-	tag = "start"
-	start = 'scoreboard objectives add '+tag+' dummy\ngive @a minecraft:bundle{bundles:"'+tag+'"}'
-	run = """scoreboard players add @a[scores={"""+tag+"""=1..}] """+tag+""" 1\n
-	scoreboard players set @a[scores={"""+tag+"""=..1}, nbt={Inventory:[{id:"minecraft:bundle",tag:{bundles:\""""+tag+"""\"}}]}] """+tag+""" 1\n
-	scoreboard players set @a[scores={"""+tag+"""=1..}, nbt=!{Inventory:[{id:"minecraft:bundle",tag:{bundles:\""""+tag+"""\"}}]}] """+tag+""" 0\n
-	"""
+
+	tag = datapackName.lower()+"_score"
+	start = 'scoreboard objectives add '+tag+' dummy\nscoreboard players set @a '+tag+' 1\ngive @a minecraft:bundle{gbundle:"run"}'
+	run = """scoreboard players add @a[ scores={"""+tag+"""=1..} ] """+tag+""" 1
+scoreboard players set @a[ scores={"""+tag+"""=..1}, nbt={Inventory: [ {Slot: 0b, id: "minecraft:bundle", Count: 1b, tag: {gbundle: "run"}} ]} ] """+tag+""" 1
+scoreboard players set @a[ scores={"""+tag+"""=1..}, nbt=!{Inventory: [ {Slot: 0b, id: "minecraft:bundle", Count: 1b, tag: {gbundle: "run"}} ]} ] """+tag+""" 0\n"""
 
 
 	fileList = []
@@ -232,10 +248,11 @@ if(isGif):
 	print(fileList)
 
 	for e in fileList:
-		run+="""item entity @a[scores={"""+tag+"""="""+str(int(e[0])+1)+"""},nbt={Inventory:[{id:"minecraft:bundle",tag:{bundles:\""""+tag+"""\"},Count: 1b,Slot: 0b}]}] hotbar.0 modify bundles:"""+e[1]+"""\n"""
-	run+="""scoreboard players set @a[scores={"""+tag+"""="""+str(int(fileList[-1][0])+2)+"""..}] """+tag+""" 1"""
+		run+="""item entity @a[ scores={"""+tag+"""="""+str(int(e[0])+2).lower()+"""}, nbt={Inventory: [ {Slot: 0b, id: "minecraft:bundle", Count: 1b, tag: {gbundle: "run"}} ]} ] hotbar.0 modify """+datapackName.lower()+""":"""+e[1].lower()+"""\n"""
+	run+="""scoreboard players set @a[ scores={"""+tag+"""="""+str(int(fileList[-1][0])+3).lower()+"""..} ] """+tag+""" 1"""
 
 
+#nbt={Inventory: [ {Slot: 0b, id: "minecraft:bundle", Count: 1b, tag: {gbundle: "start"}} ]}
 	startS = open("functions/start.mcfunction","w") 
 	startS.write(start)
 	startS.close()
@@ -245,4 +262,63 @@ if(isGif):
 	runS.write(run)
 	runS.close()
 	print("gif commands finished writing!")
+
+
+print()	
+print("Assembling datapack...")
+
+
+dirs = [
+		"datapacks/"+datapackName,
+		"datapacks/"+datapackName+"/data",
+		"datapacks/"+datapackName+"/data/"+datapackName.lower()
+	   ]
+
+for d in dirs:
+	try: os.mkdir(d)  
+	except: continue
+
+
+delDirs = [
+			"datapacks/"+datapackName+"/data/"+datapackName.lower()+"/functions",
+			"datapacks/"+datapackName+"/data/"+datapackName.lower()+"/item_modifiers"
+		  ]
+		  
+for d in delDirs:
+	if(os.path.isdir(d)):
+		for f in os.listdir(d):
+			try: os.remove(os.path.join(d, f))
+			except: break
+		os.rmdir(d)
+
+
+metafile = open("datapacks/"+datapackName+"/pack.mcmeta","w") 
+mcmeta = '{\n"pack": {\n"pack_format": 7,\n"description": "'+datapackName.lower()+' Bundle Pack"}}'
+metafile.write(mcmeta)
+metafile.close()
+
+
+fSrc = "functions/"
+fCopy = "datapacks/"+datapackName+"/data/"+datapackName.lower()+"/functions/"
+copy = shutil.copytree(fSrc,fCopy)
+print(copy)
+
+
+if(isGif):
+	imSrc = "item_modifiers/"
+	imCopy = "datapacks/"+datapackName+"/data/"+datapackName.lower()+"/item_modifiers/"
+	copy = shutil.copytree(imSrc,imCopy)
+	print(copy)
+	
+	
+delDirs = [ "functions", "item_modifiers" ]
+
+
+for d in delDirs:
+	for f in os.listdir(d):
+		try: os.remove(os.path.join(d, f))
+		except: break
+		
+		
+print("\nYour data pack has been created at: \ndatapacks/"+datapackName+"\n\n")
 

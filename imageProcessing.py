@@ -8,7 +8,7 @@ def setPixel(p, image, color):
 	
 	
 	
-def getPixel(p, image):
+def getPixel(p, image, name="unnamed"):
 	try:
 		c = [*image.getpixel((p[1],p[0]))]
 		if(len(c)==3): c.append(255)
@@ -21,12 +21,13 @@ def getPixel(p, image):
 				r,g,b = image.getpixel((p[1],p[0]))
 				c = [r,g,b, 255]
 			except:
-				c = [0,0,0,0]
+				v = image.getpixel((p[1],p[0]))
+				c = [v,v,v,v]
 	return c
 	
 	
 	
-def getAverageColor(image):
+def getAverageColor(image, name="unnamed"):
 
 	bgColor = np.array([140,140,140])
 	w, h = image.size
@@ -34,11 +35,14 @@ def getAverageColor(image):
 
 	for i in range(w):
 		for j in range(h):
-			average += np.array(getPixel([i,j],image)) 
+			currentColor = np.array(getPixel([i,j], image, name)) 
+			add = np.array([*((bgColor * (1 - currentColor[-1]/255)).astype(int)),0])
+			average += (currentColor*( currentColor[-1]/255)).astype(int) + add
 			
 	average = average // (w*h)
-	add = np.array([*((bgColor * (1 - average[-1]/255)).astype(int)),0])
-	average = (average*( average[-1]/255)).astype(int) + add
+	#add = np.array([*((bgColor * (1 - average[-1]/255)).astype(int)),0])
+	#average = (average*( average[-1]/255)).astype(int)
+	average = average.astype(int)
 	
 	return np.array([*average[:-1],255])
 	
