@@ -53,7 +53,6 @@ def generateCommandItems(inData):
 	for i in range(*segment):
 		for j in range(height):
 			currentColor = getColor(getPixel([i,j], image),colors)
-			print(currentColor)
 			command+='{Count:1b,id:\\"'+currentColor[1]+'\\"},'
 	
 	return [pieceNum,command]
@@ -71,7 +70,7 @@ def processFile(filename):
 
 
 	if(dithering):
-		print(+"Started dithering for "+filename)
+		print("Started dithering for "+filename)
 		for i in range(width):
 			for j in range(height):
 				oldPixel = getPixel( [i,j], workImage )
@@ -120,18 +119,17 @@ def processFile(filename):
 
 		command+= items+'],gbundle:\\"start\\"}"}'
 
-		file1 = open("item_modifiers/"+filename[:-len(ex)].lower()+".json","w") 
+		file1 = open("item_modifiers/"+(''.join([char for char in filename[:-len(ex)] if char != '\\'])).lower()+".json","w") 
 		file1.write(command)
 		file1.close()
 		
 	else:
 		items = ""
 		for e in output: items += e[1]
-		command = "give @p bundle{Items:["+items[:-1]+"]}"
-		file1 = open("functions/giveBundle_"+filename[:-len(ex)]+".mcfunction","w") 
+		command = "give @p bundle{Items:["+(''.join([char for char in items[:-1] if char != '\\']))+"]}"
+		file1 = open("functions/"+(''.join([char for char in filename[:-len(ex)] if char != '\\'])).lower()+".mcfunction","w") 
 		file1.write(command)
 		file1.close()
-		
 		
 	print(filename+" command has been generated and saved! Size: "+str(len(command)))
 	return 1
@@ -196,10 +194,13 @@ if(everything==False and isGif==False):
 if __name__ == '__main__':
 	print("\nFiles that will be processed:\n",files)
 	print("\n\nStarting to MultiProcess images...\n")
-	p = nPool(imageThreads)
-	output = p.map(processFile, files)
-	p.close()
-	p.join()
+	if(len(files)==1):
+		processFile(files[0])
+	else:
+		p = nPool(imageThreads)
+		output = p.map(processFile, files)
+		p.close()
+		p.join()
 
 
 def getLastNumber(string):
@@ -233,7 +234,7 @@ if(isGif):
 	print("\ngenerating gif commands...")
 	
 
-	tag = datapackName.lower()+"_score"
+	tag = ''.join([char for char in (datapackName.lower()+"score") if char !='\\'])
 	start = 'scoreboard objectives add '+tag+' dummy\nscoreboard players set @a '+tag+' 1\ngive @a minecraft:bundle{gbundle:"run"}'
 	run = """scoreboard players add @a[ scores={"""+tag+"""=1..} ] """+tag+""" 1
 scoreboard players set @a[ scores={"""+tag+"""=..1}, nbt={Inventory: [ {Slot: 0b, id: "minecraft:bundle", Count: 1b, tag: {gbundle: "run"}} ]} ] """+tag+""" 1
