@@ -1,7 +1,7 @@
 # McBundleImageConverter
 
 # How to get it working?
-In order to run this you must have Python installed on your system
+In order to run this you must have Python 3.7.x installed on your system
 You need to have installed "PIL" (Pillow) and "numpy" to python.
 You can do this;
 
