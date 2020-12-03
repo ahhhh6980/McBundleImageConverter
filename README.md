@@ -4,9 +4,11 @@
 In order to run this you must have Python 3.7.x installed on your system
 You need to have installed "PIL" (Pillow) and "numpy" to python.
 
-### With python 3.7.x installed, and added to your PATH:
-#### Run this in your terminal: `pip install numpy, pillow`
+#### With python 3.7.x installed, and added to your PATH:
+### Run this in your terminal: `pip install numpy, pillow`
 
+#### You can then call the script by CD'ing to the directory, and then typing:
+### `python code.py`
 # Allows you to batch process images into Bundles! (Gif support too!)
 
 The gif running script is a bit messed up (score randomly sets itself to 0 in MC, even though Its not being told to set itself :/), feel free to try debugging it and trying to fix the mcfunction files you get from converting a gif.
