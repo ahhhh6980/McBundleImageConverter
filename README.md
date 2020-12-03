@@ -11,6 +11,8 @@ https://pypi.org/project/Pillow/
 
 # Allows you to batch process images into Bundles! (Gif support too!)
 
+The gif running script is a bit messed up (score randomly sets itself to 0 in MC, even though Its not being told to set itself :/), feel free to try debugging it and trying to fix the mcfunction files you get from converting a gif.
+
 **I recommend scaling gifs down to 64x64 or below, and keep frame count low.**
 Otherwise you're gonna run out of memory loading minecraft lol.
 
