@@ -3,11 +3,9 @@
 # How to get it working?
 In order to run this you must have Python 3.7.x installed on your system
 You need to have installed "PIL" (Pillow) and "numpy" to python.
-You can do this;
 
-https://numpy.org/install/
-https://pypi.org/project/Pillow/
-
+With python 3.7.x installed, and added to your PATH.
+# Run this in your terminal: `pip install numpy, pillow`
 
 # Allows you to batch process images into Bundles! (Gif support too!)
 
