@@ -8,9 +8,7 @@ import shutil
 import glob
 import os
 
-
-try: tAdjust = int(tAdjust)
-except:	tAdjust = 1
+tAdjust = 1
 
 
 colors = []
@@ -135,12 +133,17 @@ def processFile(filename):
 	return 1
 
 notOkayWithThreads = True
-while(notOkayWithThreads):
-	processThreads = int(input("\nHow many processes would you like to use for processing the commands?\n(each image will open this many processes)\n[default: 3 ]:") or 3)
-	imageThreads = int(input("\nHow many images would you like to process at the same time?\n(will open this many processes times the amount per image!!!)\n[default: 2]:") or 2)
-	if(processThreads<1): processThreads = 1
-	if(imageThreads<1): processThreads = 1
-	notOkayWithThreads = (input("\n!!!This program is set to use "+str(processThreads*imageThreads)+" threads of your CPU, are you sure?!!!\n[y/N]:").lower() or "n")=="n"
+
+askThreads = (input("\nWould you like to specify the number of threads to use? Default: 6 (3 per image, 2 images at a time)\n[y/N]:").lower() or "n")=="y"
+processThreads = 3
+imageThreads = 2
+if(askThreads):
+	while(notOkayWithThreads):
+		processThreads = int(input("\nHow many processes would you like to use for processing the commands?\n(each image will open this many processes)\n[default: 3 ]:") or 3)
+		imageThreads = int(input("\nHow many images would you like to process at the same time?\n(will open this many processes times the amount per image!!!)\n[default: 2]:") or 2)
+		if(processThreads<1): processThreads = 1
+		if(imageThreads<1): processThreads = 1
+		notOkayWithThreads = (input("\n!!!This program is set to use "+str(processThreads*imageThreads)+" threads of your CPU, are you sure?!!!\n[y/N]:").lower() or "n")=="n"
 
 
 datapackName = input("\nPlease enter a name for the data pack\n[untitled_pack]:") or "untitled_pack"
