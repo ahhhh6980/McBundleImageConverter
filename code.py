@@ -199,7 +199,7 @@ if __name__ == '__main__':
 	if(len(files)==1):
 		processFile(files[0])
 	else:
-		p = nPool(imageThreads)
+		p = multiprocessing.pool.Pool(imageThreads)
 		output = p.map(processFile, files)
 		p.close()
 		p.join()

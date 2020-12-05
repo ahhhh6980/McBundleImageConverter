@@ -1,10 +1,9 @@
 # McBundleImageConverter
 
 # How to get it working?
-In order to run this you must have Python 3.7.x installed on your system
 You need to have installed "PIL" (Pillow) and "numpy" to python.
 
-#### With python 3.7.x installed, and added to your PATH:
+#### With python, and added to your PATH:
 ### Run this in your terminal: `pip install numpy, pillow`
 
 #### You can then call the script by CD'ing to the directory, and then typing:
@@ -37,3 +36,4 @@ This will give you a bundle, keep it in the first slot of your hotbar!
 
 Next you need to set up a way to call /function bundles:run
 This function is what updates the NBT data in your bundle to the next frame!
+
